@@ -1,1 +1,25 @@
-{"name":"pc-performance-analyzer","version":"1.0.0","private":true,"type":"module","engines":{"node":">=22"},"scripts":{"dev":"node server.mjs","test":"node --test engine.test.mjs","build":"node build.mjs"},"dependencies":{"pdfjs-dist":"5.4.149"}}
+{
+  "name": "pc-performance-analyzer",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node server.mjs",
+    "test": "node --test engine.test.mjs",
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@tesseract.js-data/eng": "1.0.0",
+    "@tesseract.js-data/spa": "1.0.0",
+    "pdfjs-dist": "5.4.149",
+    "tesseract.js": "6.0.1"
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "tesseract.js"
+    ]
+  }
+}

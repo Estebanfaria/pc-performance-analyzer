@@ -1,23 +1,36 @@
-# PC Performance Analyzer
+# PC Performance Analyzer — evolución v2
 
-MVP web en español, estático y compatible con Vercel. PDF.js procesa presupuestos en el navegador: no se envían a un servidor ni se guardan. Detección de un catálogo inicial de CPU y GPU, RAM y almacenamiento, corrección manual, modos Gaming/Productividad, resoluciones 1080p/1440p/4K y exportación PNG 1080×1920.
+Mejora incremental del MVP actual, publicado en https://pc-performance-analyzer-one.vercel.app/. Conserva PDF, carga manual, ejemplo, Gaming/Productividad, selección de resolución, exportación PNG 1080×1920 y tres snapshots independientes para futura comparación.
 
-## Desarrollo
+## Flujo
 
-Node 22 o posterior. `npm install`, `npm run build`, `npm run dev`. Abrir http://127.0.0.1:4173. `npm test` verifica detección y estimaciones. También se puede usar pnpm con el lockfile incluido.
+Subir PDF → extraer texto o ejecutar OCR → «Detectamos esta PC» → corregir solo si hace falta → confirmar → analizar → descargar o compartir ficha. Los documentos se procesan en el dispositivo; no se transmiten a un servicio de análisis. La función de compartir solo transmite la imagen al destino elegido explícitamente por el visitante.
 
-## Vercel
+## Módulos
 
-Importar este repositorio. Framework: Other. Build: `npm run build`. Output: `dist`. La configuración está en vercel.json. No hay secretos, base de datos ni variables de entorno.
+- `document.mjs`: PDF.js, reconstrucción de filas por coordenadas y OCR Tesseract español/inglés para páginas escaneadas o con texto insuficiente. Todos los workers, WASM y datos de idioma se sirven desde el mismo sitio.
+- `parser.mjs`: contexto de componentes, RAM y cantidades/kit, frecuencia, VRAM, varios discos, motherboard, fuente, refrigeración y gabinete. Conserva evidencia y alternativas.
+- `hardware.mjs`: normalización, aliases, fuzzy matching conservador con mismos números, perfiles conocidos y familias comparables. No reemplaza la identidad del componente por su equivalente.
+- `engine.mjs`: gaming por resolución/preset, cuello de CPU, RAM, VRAM, recomendación y diez tareas de productividad. Catálogo ausente no bloquea una PC identificada: usa equivalencia declarada cuando hay una familia válida. Familias sin referencia conservan el hardware y muestran FPS no disponibles.
+- `games.mjs`: nueve perfiles e iconos vectoriales propios integrados; no son logos oficiales ni requieren descargas remotas.
+- `report.mjs`: mismo Canvas para preview y PNG. Tipografía Arial, ajuste de nombres largos y colores blanco/celeste/negro. Gaming: tabla 1080p/1440p/4K. Productividad: niveles y condiciones de trabajo, sin FPS.
 
-## Límites y metodología
+## Ejecutar
 
-El motor es una heurística propia v1, no una base de benchmarks ni una promesa de FPS. Los índices relativos y coeficientes son supuestos del MVP; requieren calibración con pruebas reales antes de usarse para asesoramiento comercial. Se muestran rangos y aclaraciones tanto en pantalla como en la placa. No hay OCR, soporte de PDF cifrado, ni identificación universal de hardware. Límites: 15 MB y 50 páginas. Los modelos desconocidos requieren selección manual; nunca se sustituyen silenciosamente.
+Node 22+. `pnpm install`, `pnpm test`, `pnpm build`, `pnpm dev`. Alternativa: npm install y npm run build. El comando de construcción de Vercel es `npm run build`, con output `dist` y preset Other. No se requieren secretos ni backend. El postinstall de tesseract.js solo muestra información de donaciones y está explícitamente ignorado por pnpm.
 
-Los puntajes creativos suponen proyectos moderados, edición 1080p y composiciones ligeras; no representan tiempos de render. Roblox y EA Sports FC varían por experiencia/edición. Almacenamiento afecta respuesta, no aumenta FPS artificialmente.
+## Datos y precisión
 
-## Arquitectura para comparar
+Parte de las referencias de GPU se basa en medias raster Ultra de la [GPU Hierarchy de Tom's Hardware](https://www.tomshardware.com/reviews/gpu-hierarchy,4388.html), consultada el 05/10/2026. Las tres columnas por GPU pertenecen a la misma batería de pruebas. Se usan para calibrar capacidad relativa; NO se presentan como benchmarks directos de Fortnite/Warzone/etc. Los perfiles de CPU, multiplicadores por juego, ajustes de preset y otros modelos son heurísticos. Cada resultado por juego es una estimación redondeada con rango de incertidumbre; la equivalencia de familia amplía ese rango. Los intervalos son orientativos, no intervalos estadísticos con cobertura garantizada.
 
-`engine.mjs` es independiente de la interfaz: catálogos, detect(text), estimate(spec,resolution) y makeBudget(spec,name). Los registros tienen id, schemaVersion, fecha y snapshot de componentes. La interfaz mantiene hasta tres registros independientes en memoria de la pestaña. Próxima etapa: interfaz de comparación, persistencia explícita, catálogo más amplio y motor calibrado. No hay comparación visual aún ni persistencia al recargar.
+High es el preset inicial. No incluye ray tracing, reescalado ni frame generation. Fortnite supone DX12 sin Lumen/Nanite; Minecraft Java sin shaders/mods a 12 chunks; GTA V Legacy sin MSAA ni gráficos avanzados; Roblox depende del mapa y del límite de FPS. Los rangos GTA V están limitados a 185 FPS y Roblox a 240. GTA VI se omite: la [información oficial de Rockstar](https://support.rockstargames.com/articles/4QfG4FmZCf5W1gS8jy4UVT/grand-theft-auto-vi-platform-editions-and-versions-Platforms) no proporciona benchmarks de PC.
 
-PDF.js es Apache-2.0. Fuentes Google Fonts con fallback local. La placa usa Arial y Canvas, sin servicios externos.
+Productividad expresa comodidad para tareas moderadas, no tiempo de render ni garantía de compatibilidad. Los puntajes internos solo asignan niveles; codecs, aceleración, efectos, RAM y VRAM modifican resultados. Antes de usar estas fichas como compromiso comercial, calibrar los perfiles por juego con ensayos de configuraciones reales.
+
+## Límites y validación
+
+15 MB, 50 páginas de texto y máximo 8 páginas sometidas a OCR por documento. Si alcanza ese límite, muestra que la lectura es parcial. OCR imperfecto: nombres y cifras deben confirmarse. Si aparecen varias CPUs/GPUs, conserva candidatos y avisa de la selección inicial. Sin datos suficientes de CPU/GPU/RAM solicita solo esos datos, no los componentes opcionales. No se guarda el PDF; los snapshots viven en la pestaña.
+
+`engine.test.mjs` cubre normalización, fuzzy, cantidades, no confundir VRAM con RAM, discos, alternativas, hardware comparable, presets y filas de PDF. `prueba-*.pdf` son fixtures sintéticos identificados explícitamente como pruebas, incluyendo escaneo. No se recibieron presupuestos reales del usuario en esta etapa; la validación con proveedores reales queda pendiente de esos archivos.
+
+PDF.js y Tesseract: Apache-2.0; datos lingüísticos: paquetes oficiales de Tesseract.js. Las fuentes de interfaz tienen fallback local y la ficha exportada usa fuentes del sistema. No hay dependencias visuales remotas para iconos ni PNG.
