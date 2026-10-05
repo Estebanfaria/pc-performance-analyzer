@@ -1,6 +1,6 @@
 # PC Performance Analyzer — evolución v2
 
-Mejora incremental del MVP actual, publicado en https://pc-performance-analyzer-one.vercel.app/. Conserva PDF, carga manual, ejemplo, Gaming/Productividad, selección de resolución, exportación PNG 1080×1920 y tres snapshots independientes para futura comparación.
+Mejora incremental del MVP actual, publicado en https://pc-performance-analyzer-one.vercel.app/. Conserva PDF, carga manual, ejemplo, Gaming/Productividad, selección de resolución, exportación PNG 1080×1920 y comparación de hasta tres PCs con snapshots independientes.
 
 ## Flujo
 
@@ -36,3 +36,8 @@ Productividad expresa comodidad para tareas moderadas, no tiempo de render ni ga
 `engine.test.mjs` y `catalog.test.mjs` cubren normalización, fuzzy, cantidades, no confundir VRAM con RAM, discos, alternativas, hardware comparable, presets, filas de PDF, variantes Core Ultra y memoria ambigua. `prueba-*.pdf` son fixtures sintéticos identificados explícitamente como pruebas, incluyendo escaneo. También se reprodujo la configuración detectada en el navegador del usuario (Core Ultra 7 265KF / RTX 5070 Ti / 32 GB DDR5); el archivo original de ese presupuesto no está guardado en este repositorio.
 
 PDF.js y Tesseract: Apache-2.0; datos lingüísticos: paquetes oficiales de Tesseract.js. Las fuentes de interfaz tienen fallback local y la ficha exportada usa fuentes del sistema. No hay dependencias visuales remotas para iconos ni PNG.
+
+## Comparación de PCs
+
+Analizar → Agregar a comparación → Cargar otra PC. Hasta tres PCs con snapshots independientes en la pestaña. Comparación lado a lado de componentes, nueve juegos por resolución/preset y diez tareas de productividad. Se pueden renombrar, revisar/actualizar y quitar PCs. Los selectores de comparación aplican el mismo criterio a todas. No hay persistencia al recargar ni ranking comercial: los FPS siguen siendo estimaciones. `comparison.mjs` genera los datos y `comparison-ui.mjs` presenta la comparación; `comparison.test.mjs` verifica independencia y referencias ausentes.
+
