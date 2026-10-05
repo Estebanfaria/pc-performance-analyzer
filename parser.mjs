@@ -1,3 +1,4 @@
+import {graphicsFor} from './analyzer.mjs';
 import {normalizeText,identifyCPU,identifyGPU} from './hardware.mjs';
 import {matchMotherboard,matchMemory,matchCatalogGPU} from './catalog.mjs';
 const hardwareLabel=/\b(?:CPU|PROCESADOR|MICROPROCESADOR|MICRO|GPU|VGA|PLACA\s+(?:DE\s+)?VIDEO|MEMORIA|RAM|SSD|NVME|DISCO|MOTHERBOARD|MOTHER|PLACA\s+MADRE|FUENTE|PSU|GABINETE|CASE|COOLER|REFRIGERACION)\s*[:|]/gi;
@@ -9,7 +10,7 @@ export function parseBudget(text){
  const lines=segmentText(text),s={cpu:'',gpu:'',ram:'',ramType:'',ramFrequency:'',ramModules:'',gpuVram:'',storage:'',capacity:'',motherboard:'',psu:'',cooling:'',case:'',drives:[],evidence:{},candidates:{cpu:[],gpu:[]},issues:[]};
  const keep=(k,value,line)=>{if(!s[k]&&value){s[k]=value;s.evidence[k]=line;}};
  for(const line of lines){const n=normalizeText(line);const boardHint=/\bmother(?:board)?\b|placa madre|\b(?:[ABXZHW]\d{2,3})(?:[MIE]|[- ])\b/i.test(n)||/\b[ABXZHW]\d{2,3}\b/i.test(n);const catalogBoard=boardHint||/\b(?:Asus|ASRock|MSI|Gigabyte|Biostar|NZXT|EVGA|Supermicro)\b/i.test(n)?matchMotherboard(n):null;const board=boardHint||Boolean(catalogBoard);
-  if(!board){const cpu=identifyCPU(n);if(cpu){s.candidates.cpu.push(cpu);keep('cpu',cpu,line);}const gpu=identifyGPU(n);if(gpu){s.candidates.gpu.push(gpu);keep('gpu',gpu,line);const v=n.match(/\b(\d{1,2})\s*(?:GB|G)(?:\b|DDR)/i);if(v)keep('gpuVram',Number(v[1]),line);else{const retail=matchCatalogGPU(n);if(retail?.vram)keep('gpuVram',retail.vram,line);}}}
+  if(!board){const cpu=identifyCPU(n);if(cpu){s.candidates.cpu.push(cpu);keep('cpu',cpu,line);const threads=n.match(/\b(\d{1,3})\s*(?:hilos|threads)\b/i);if(threads)keep('cpuThreads',Number(threads[1]),line);}const gpu=identifyGPU(n);if(gpu){s.candidates.gpu.push(gpu);keep('gpu',gpu,line);const v=n.match(/\b(\d{1,2})\s*(?:GB|G)(?:\b|DDR)/i);if(v)keep('gpuVram',Number(v[1]),line);else{const retail=matchCatalogGPU(n);if(retail?.vram)keep('gpuVram',retail.vram,line);}}}
   if(board){keep('motherboard',catalogBoard?.name||clean(line),line);if(catalogBoard&&!s.motherboardDetails)s.motherboardDetails={...catalogBoard};}
   if(ramContext.test(n)&&!nonRAM.test(n)&&!board&&!/gddr/i.test(n)){
    const kit=n.match(/\b([1-8])\s*[x×]\s*(\d{1,3})\s*(?:gb)?\b/i);const capacity=n.match(/\b(\d{1,3})\s*g[b]?\b/i);const qty=n.match(/^\s*([1-8])\s*(?:[|]\s*)?(?:memoria|ram|ddr|kingston|corsair|g\.?skill|patriot|crucial|team)/i)||n.match(/(?:cantidad|cant\.?|qty)\s*[:=]?\s*([1-8])\b/i)||n.match(/\b([1-8])\s*(?:unidades|modulos)\b/i)||n.match(/\bx\s*([1-8])\b/i)||n.match(/\s([1-8])\s+(?=\$|ARS\b|USD\b)/i);
@@ -30,7 +31,9 @@ export function parseBudget(text){
  }
  for(const kind of ['cpu','gpu']){s.candidates[kind]=[...new Set(s.candidates[kind])];if(s.candidates[kind].length>1)s.issues.push(`Hay ${s.candidates[kind].length} opciones de ${kind.toUpperCase()} en el documento. Elegimos la primera: revisala antes de confirmar.`);}
  const primary=[...s.drives].sort((a,b)=>({NVMe:3,SSD:2,HDD:1}[b.type]||0)-({NVMe:3,SSD:2,HDD:1}[a.type]||0))[0];if(primary){s.storage=primary.type;s.capacity=primary.capacity;s.evidence.storage=primary.name;}
- if(!s.gpu&&/sin (?:placa|gpu)|video integrad|grafica integrad|graficos integrad/i.test(text)){s.gpu=/[58][67]00G/i.test(s.cpu)?'Radeon integrada (5600G)':/[89][67]00G/i.test(s.cpu)?'Radeon 780M integrada':/Core/i.test(s.cpu)?'Intel UHD integrada':'Radeon integrada básica';s.issues.push('Se indicó gráfica integrada; su rendimiento depende de la memoria y del procesador.');}
+ if(!s.gpu&&/sin (?:placa|gpu)|video integrad|grafica integrad|graficos integrad/i.test(text)){s.gpu=graphicsFor(s);s.issues.push('Se indicó gráfica integrada; su rendimiento depende de la memoria y del procesador.');}
  return s;
 }
 export function detect(text){const s=parseBudget(text);return Object.fromEntries(['cpu','gpu','ram','storage','capacity'].map(k=>[k,s[k]]));}
+
+

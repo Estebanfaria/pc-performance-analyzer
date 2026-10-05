@@ -8,3 +8,5 @@ textarea{font:inherit;width:100%;padding:10px;margin:12px 0;border:1px solid var
 
 #compare-preview canvas{width:min(100%,800px);height:auto;border:1px solid var(--line);border-radius:10px;margin-top:16px}
 
+
+.integral-analysis{margin:22px 0}.use-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.use-card{border:1px solid var(--line);border-radius:12px;padding:14px}.use-card summary{display:flex;flex-direction:column;gap:9px;cursor:pointer}.use-card summary span{color:#007fa8;font-size:13px}.use-card progress{width:100%;height:9px;accent-color:#29aed6}.use-task{border-top:1px solid var(--line);padding:14px 0}.use-task span{display:block;color:#007fa8;margin-top:5px}.use-task p,.use-task small,.integral-analysis p,.integral-analysis li{font-size:12px;line-height:1.7}.integral-balance{padding:12px;background:#eaf8fe;border-radius:10px}#integral-preview canvas{width:min(100%,324px);height:auto}@media(max-width:700px){.use-grid{grid-template-columns:1fr}}

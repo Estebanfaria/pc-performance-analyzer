@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "node server.mjs",
-    "test": "node --test engine.test.mjs catalog.test.mjs comparison.test.mjs",
+    "test": "node --test engine.test.mjs catalog.test.mjs comparison.test.mjs analyzer.test.mjs",
     "build": "node build.mjs"
   },
   "dependencies": {
@@ -23,4 +23,5 @@
     ]
   }
 }
+
 

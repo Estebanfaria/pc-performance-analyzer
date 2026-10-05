@@ -12,7 +12,8 @@ export function createComparisonReport(budgets,resolution,preset,mode){
  canvas.setAttribute('aria-label','Imagen de comparación de PCs');c.fillStyle='#fff';c.fillRect(0,0,width,canvas.height);c.fillStyle='#77d6f7';c.fillRect(0,0,width,14);
  const text=(s,x,y,size=24,color='#15232f',bold=false)=>{c.fillStyle=color;c.font=`${bold?'700':'400'} ${size}px Arial`;c.fillText(s,x,y);};
  text('PC PERFORMANCE ANALYZER',margin,65,24,'#007fa8',true);text(`Comparación de ${budgets.length} PCs`,margin,125,42,'#15232f',true);
- text(mode==='gaming'?`Gaming · ${resolution} · ${preset==='low'?'Competitivo / Low':preset==='ultra'?'Ultra':'High'} · FPS estimados`:'Productividad · Capacidad orientativa para tareas moderadas',margin,176,25,'#637c8c');
+ text(mode==='gaming'?`Gaming · ${resolution} · ${preset==='low'?'Competitivo / Low':preset==='ultra'?'Ultra':'High'} · FPS estimados`:mode==='integral'?'Análisis integral · Índices estimados / 10':'Productividad · Capacidad orientativa para tareas moderadas',margin,176,25,'#637c8c');
  let y=220;for(const [i,row]of laidOut.entries()){if(i===0){c.fillStyle='#dff5fe';c.fillRect(margin,y,width-margin*2,row.height);}for(const [j,cell]of row.cells.entries()){const x=margin+(j?labelWidth+(j-1)*colWidth:0)+15;cell.forEach((line,k)=>text(line,x,y+39+k*32,24,i>=5&&j?'#007fa8':'#15232f',i===0||j===0));}y+=row.height;c.fillStyle='#e4edf2';c.fillRect(margin,y,width-margin*2,1);}
  y+=42;text(mode==='gaming'?'Rangos orientativos · Resolución nativa · Sin RT ni reescalado.':'Niveles orientativos · No son tiempos de render ni mediciones reales.',margin,y,21,'#637c8c');y+=32;text('El rendimiento real varía por versión, escena, drivers y configuración.',margin,y,21,'#637c8c');for(const note of notes){y+=30;text(note,margin,y,21,'#637c8c');}return canvas;
 }
+

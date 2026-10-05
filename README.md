@@ -41,3 +41,7 @@ PDF.js y Tesseract: Apache-2.0; datos lingüísticos: paquetes oficiales de Tess
 
 Analizar → Agregar a comparación → Cargar otra PC. Hasta tres PCs con snapshots independientes en la pestaña. Comparación lado a lado de componentes, nueve juegos por resolución/preset y diez tareas de productividad. Se pueden renombrar, revisar/actualizar y quitar PCs. Los selectores de comparación aplican el mismo criterio a todas. No hay persistencia al recargar ni ranking comercial: los FPS siguen siendo estimaciones. `comparison.mjs` genera los datos y `comparison-ui.mjs` presenta la comparación; `comparison.test.mjs` verifica independencia y referencias ausentes.
 
+
+## Análisis integral v3
+Motor central analyzer.mjs: diez categorías, treinta tareas, índices de adecuación y confianza, fortalezas, limitaciones, upgrades según uso y perfil. Resumen para cliente y detalle técnico desplegable. Ficha integral 1080×1920 adicional; se conservan fichas y comparación previas. Comparador incluye modo Integral y PNG. GPU opcional: usa la integrada declarada en catálogo o deja la gráfica sin referencia, sin asumir que un CPU F/KF tiene video. PDF completo genera análisis preliminar, conservando revisión y confirmación. Metodología y fuentes en ANALYSIS.md. Validación de siete perfiles y datos insuficientes en analyzer.test.mjs.
+
