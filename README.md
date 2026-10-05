@@ -8,6 +8,8 @@ Subir PDF → extraer texto o ejecutar OCR → «Detectamos esta PC» → correg
 
 ## Módulos
 
+- `catalog-data.mjs` y `catalog.mjs`: snapshot local de 26.575 registros de CPU, GPU, motherboard y RAM de PC Part Dataset (MIT). Conserva especificaciones, distingue nombres ambiguos y completa solo datos inequívocos. Fuente/revisión/licencia y actualización en `CATALOG.md` y `catalog-import.mjs`.
+
 - `document.mjs`: PDF.js, reconstrucción de filas por coordenadas y OCR Tesseract español/inglés para páginas escaneadas o con texto insuficiente. Todos los workers, WASM y datos de idioma se sirven desde el mismo sitio.
 - `parser.mjs`: contexto de componentes, RAM y cantidades/kit, frecuencia, VRAM, varios discos, motherboard, fuente, refrigeración y gabinete. Conserva evidencia y alternativas.
 - `hardware.mjs`: normalización, aliases, fuzzy matching conservador con mismos números, perfiles conocidos y familias comparables. No reemplaza la identidad del componente por su equivalente.
@@ -31,6 +33,6 @@ Productividad expresa comodidad para tareas moderadas, no tiempo de render ni ga
 
 15 MB, 50 páginas de texto y máximo 8 páginas sometidas a OCR por documento. Si alcanza ese límite, muestra que la lectura es parcial. OCR imperfecto: nombres y cifras deben confirmarse. Si aparecen varias CPUs/GPUs, conserva candidatos y avisa de la selección inicial. Sin datos suficientes de CPU/GPU/RAM solicita solo esos datos, no los componentes opcionales. No se guarda el PDF; los snapshots viven en la pestaña.
 
-`engine.test.mjs` cubre normalización, fuzzy, cantidades, no confundir VRAM con RAM, discos, alternativas, hardware comparable, presets y filas de PDF. `prueba-*.pdf` son fixtures sintéticos identificados explícitamente como pruebas, incluyendo escaneo. No se recibieron presupuestos reales del usuario en esta etapa; la validación con proveedores reales queda pendiente de esos archivos.
+`engine.test.mjs` y `catalog.test.mjs` cubren normalización, fuzzy, cantidades, no confundir VRAM con RAM, discos, alternativas, hardware comparable, presets, filas de PDF, variantes Core Ultra y memoria ambigua. `prueba-*.pdf` son fixtures sintéticos identificados explícitamente como pruebas, incluyendo escaneo. También se reprodujo la configuración detectada en el navegador del usuario (Core Ultra 7 265KF / RTX 5070 Ti / 32 GB DDR5); el archivo original de ese presupuesto no está guardado en este repositorio.
 
 PDF.js y Tesseract: Apache-2.0; datos lingüísticos: paquetes oficiales de Tesseract.js. Las fuentes de interfaz tienen fallback local y la ficha exportada usa fuentes del sistema. No hay dependencias visuales remotas para iconos ni PNG.

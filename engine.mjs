@@ -9,7 +9,8 @@ export function estimate(spec,resolution='1080p',preset='high'){
  if(!spec.cpu?.trim()||!spec.gpu?.trim()||!Number.isFinite(ram)||ram<4||ram>512)return null;
  const warnings=[];const inferred=!cpu||!gpu||cpu.method==='family'||gpu.method==='family';
  if(cpu?.equivalent)warnings.push(`CPU: aproximación por familia comparable a ${cpu.equivalent}. Conservamos el modelo original.`);if(gpu?.equivalent)warnings.push(`GPU: aproximación con ${gpu.equivalent}. Los rangos tienen mayor incertidumbre.`);
- if(!cpu||!gpu)warnings.push('Hardware identificado, pero sin referencia fiable para esta familia. Conservamos la configuración; no inventamos FPS.');
+ if(!cpu)warnings.push(`CPU ${spec.cpu}: identificada, pero todavía sin referencia de rendimiento comparable. Conservamos el modelo.`);
+ if(!gpu)warnings.push(`GPU ${spec.gpu}: identificada, pero todavía sin referencia de rendimiento comparable. Conservamos el modelo.`);
  const c=cpu?.gaming||0,g=gpu?.values||[0,0,0],vram=Number(spec.gpuVram)||gpu?.vram||0;
  const memory=clamp(ram/16,.35,1),channel=Number(spec.ramModules)===1?.9:1,speed=Number(spec.ramFrequency),frequency=speed&&speed<2666?.94:1,quality={low:1.65,high:1.15,ultra:.85}[preset]||1.15;
  // Suite mean × workload profile; CPU ceiling avoids linear FPS scaling.

@@ -2,7 +2,7 @@ import {mkdir,copyFile,cp,readdir} from 'node:fs/promises';
 import {createRequire} from 'node:module';import {dirname} from 'node:path';
 const require=createRequire(import.meta.url);
 await mkdir('dist/vendor',{recursive:true});
-for(const f of ['index.html','style.css','app.mjs','engine.mjs','hardware.mjs','parser.mjs','document.mjs','games.mjs','report.mjs','favicon.svg']) await copyFile(f,`dist/${f}`);
+for(const f of ['index.html','style.css','app.mjs','engine.mjs','hardware.mjs','parser.mjs','document.mjs','games.mjs','report.mjs','catalog.mjs','catalog-data.mjs','CATALOG-LICENSE.txt','CATALOG.md','favicon.svg']) await copyFile(f,`dist/${f}`);
 for(const f of ['pdf.mjs','pdf.worker.mjs']) await copyFile(`node_modules/pdfjs-dist/build/${f}`,`dist/vendor/${f}`);
 await cp('node_modules/pdfjs-dist/standard_fonts','dist/vendor/standard_fonts',{recursive:true});
 await cp('node_modules/pdfjs-dist/wasm','dist/vendor/pdf-wasm',{recursive:true});

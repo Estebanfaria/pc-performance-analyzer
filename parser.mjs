@@ -1,4 +1,5 @@
 import {normalizeText,identifyCPU,identifyGPU} from './hardware.mjs';
+import {matchMotherboard,matchMemory,matchCatalogGPU} from './catalog.mjs';
 const hardwareLabel=/\b(?:CPU|PROCESADOR|MICROPROCESADOR|MICRO|GPU|VGA|PLACA\s+(?:DE\s+)?VIDEO|MEMORIA|RAM|SSD|NVME|DISCO|MOTHERBOARD|MOTHER|PLACA\s+MADRE|FUENTE|PSU|GABINETE|CASE|COOLER|REFRIGERACION)\s*[:|]/gi;
 export function segmentText(text){return String(text).replace(/\r/g,'').replace(hardwareLabel,'\n$&').split(/\n|\s*;\s*/).map(s=>s.replace(/\s+/g,' ').trim()).filter(Boolean);}
 const nonRAM=/\b(?:rtx|gtx|radeon|geforce|gpu|vga|mother|motherboard|placa madre|ssd|nvme|disco|almacenamiento)\b/i;
@@ -7,13 +8,15 @@ const clean=s=>s.replace(/^\d+\s*[|]\s*/,'').replace(/\s+(?:\$|ARS\b|USD\b|preci
 export function parseBudget(text){
  const lines=segmentText(text),s={cpu:'',gpu:'',ram:'',ramType:'',ramFrequency:'',ramModules:'',gpuVram:'',storage:'',capacity:'',motherboard:'',psu:'',cooling:'',case:'',drives:[],evidence:{},candidates:{cpu:[],gpu:[]},issues:[]};
  const keep=(k,value,line)=>{if(!s[k]&&value){s[k]=value;s.evidence[k]=line;}};
- for(const line of lines){const n=normalizeText(line);const board=/\bmother(?:board)?\b|placa madre|\b(?:[ABXZHW]\d{3})\b/i.test(n);
-  if(!board){const cpu=identifyCPU(n);if(cpu){s.candidates.cpu.push(cpu);keep('cpu',cpu,line);}const gpu=identifyGPU(n);if(gpu){s.candidates.gpu.push(gpu);keep('gpu',gpu,line);const v=n.match(/\b(\d{1,2})\s*(?:GB|G)(?:\b|DDR)/i);if(v)keep('gpuVram',Number(v[1]),line);}}
-  if(board)keep('motherboard',clean(line),line);
-  if(ramContext.test(n)&&!nonRAM.test(n)&&!/gddr/i.test(n)){
+ for(const line of lines){const n=normalizeText(line);const boardHint=/\bmother(?:board)?\b|placa madre|\b(?:[ABXZHW]\d{2,3})(?:[MIE]|[- ])\b/i.test(n)||/\b[ABXZHW]\d{2,3}\b/i.test(n);const catalogBoard=boardHint||/\b(?:Asus|ASRock|MSI|Gigabyte|Biostar|NZXT|EVGA|Supermicro)\b/i.test(n)?matchMotherboard(n):null;const board=boardHint||Boolean(catalogBoard);
+  if(!board){const cpu=identifyCPU(n);if(cpu){s.candidates.cpu.push(cpu);keep('cpu',cpu,line);}const gpu=identifyGPU(n);if(gpu){s.candidates.gpu.push(gpu);keep('gpu',gpu,line);const v=n.match(/\b(\d{1,2})\s*(?:GB|G)(?:\b|DDR)/i);if(v)keep('gpuVram',Number(v[1]),line);else{const retail=matchCatalogGPU(n);if(retail?.vram)keep('gpuVram',retail.vram,line);}}}
+  if(board){keep('motherboard',catalogBoard?.name||clean(line),line);if(catalogBoard&&!s.motherboardDetails)s.motherboardDetails={...catalogBoard};}
+  if(ramContext.test(n)&&!nonRAM.test(n)&&!board&&!/gddr/i.test(n)){
    const kit=n.match(/\b([1-8])\s*[x×]\s*(\d{1,3})\s*(?:gb)?\b/i);const capacity=n.match(/\b(\d{1,3})\s*g[b]?\b/i);const qty=n.match(/^\s*([1-8])\s*(?:[|]\s*)?(?:memoria|ram|ddr|kingston|corsair|g\.?skill|patriot|crucial|team)/i)||n.match(/(?:cantidad|cant\.?|qty)\s*[:=]?\s*([1-8])\b/i)||n.match(/\b([1-8])\s*(?:unidades|modulos)\b/i)||n.match(/\bx\s*([1-8])\b/i)||n.match(/\s([1-8])\s+(?=\$|ARS\b|USD\b)/i);
    const type=n.match(/\bDDR\s*([345])\b/i);if(type)keep('ramType','DDR'+type[1],line);const speed=n.match(/\b([1-9]\d{3})\s*(?:mhz|mt\/s|mts)\b/i)||n.match(/\bDDR\s*[345]\s*[- ]\s*([1-9]\d{3})\b/i);if(speed)keep('ramFrequency',Number(speed[1]),line);
    let amount=kit?Number(kit[1])*Number(kit[2]):capacity?Number(capacity[1])*(qty?Number(qty[1]):1):0;let modules=kit?Number(kit[1]):qty?Number(qty[1]):'';
+   const catalogRAM=matchMemory(n,{capacity:kit?amount:capacity?Number(capacity[1]):null,type:type?'DDR'+type[1]:null,frequency:speed?Number(speed[1]):null,modules:kit?Number(kit[1]):null});
+   if(catalogRAM){s.memoryDetails=catalogRAM;keep('ramType',catalogRAM.type,line);keep('ramFrequency',catalogRAM.frequency,line);if(!modules&&catalogRAM.modules)modules=catalogRAM.modules*(qty?Number(qty[1]):1);if(!amount&&catalogRAM.capacity)amount=catalogRAM.capacity*(qty?Number(qty[1]):1);}
    // Do not add repeated summaries/headers. Separate identical purchased rows are counted only with explicit quantities.
    if(amount>=4&&amount<=512){if(!s.ram){keep('ram',amount,line);s.ramModules=modules;}else if(line!==s.evidence.ram&&qty&&!kit){s.ram+=amount;s.ramModules=(Number(s.ramModules)||1)+Number(qty[1]);}s.evidence.ram=line;}
   }
