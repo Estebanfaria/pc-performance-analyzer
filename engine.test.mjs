@@ -1,5 +1,13 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {detect,parseBudget,estimate,makeBudget} from './engine.mjs';import {identifyCPU,identifyGPU,resolveCPU,resolveGPU} from './hardware.mjs';import {reconstructRows} from './document.mjs';
 const s={cpu:'Ryzen 5 5600',gpu:'RTX 3060',ram:16,storage:'NVMe',capacity:1000};
+test('Core Ultra 265KF quotation produces FPS in every game and resolution',()=>{
+ const spec=parseBudget('CPU Intel Core Ultra 7 265KF\nGPU RTX 5070 Ti 16GB\nRAM DDR5 32GB 5600MHz\nSSD NVMe 1TB');
+ const result=estimate(spec);assert.equal(spec.cpu,'Core Ultra 7 265KF');
+ assert.equal(result.cpu.name,spec.cpu);assert.equal(result.cpu.equivalent,'Core Ultra 7 265K');
+ for(const game of result.gaming)for(const res of ['1080p','1440p','4K']){assert.ok(game.values[res].min>0);assert.ok(game.values[res].max>game.values[res].min);}
+ assert.ok(result.productivity.every(job=>job.score>0));assert.ok(result.warnings.some(w=>w.includes('265K')));
+ assert.equal(resolveCPU('Core Ultra 7 999KF'),null);
+});
 test('detects a multiline quotation and RAM kit without using GPU VRAM',()=>{assert.deepEqual(detect('CPU AMD Ryzen 5 5600\nGPU NVIDIA RTX 3060 12GB\nMemoria DDR4 2 x 8 GB\nSSD M.2 NVMe 1 TB'),s);});
 test('longer model wins and unknown hardware stays empty',()=>{assert.equal(detect('Ryzen 5 5600G\nRTX 3060 Ti').cpu,'Ryzen 5 5600G');assert.equal(detect('RTX 3060 Ti').gpu,'RTX 3060 Ti');assert.equal(detect('CPU desconocida GPU desconocida').cpu,'');});
 test('resolution reduces FPS and productivity keeps old tasks and adds professional workloads',()=>{assert.ok(estimate(s,'4K').gaming[0].max<estimate(s).gaming[0].max);assert.equal(estimate(s).productivity.length,10);});

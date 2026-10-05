@@ -24,6 +24,12 @@ export function identifyGPU(raw){const t=normalizeText(raw);let m=t.match(/\b(RT
  if(/780m/i.test(t))return 'Radeon 780M integrada';if(/intel.*(?:uhd|integrada)|\buhd\b/i.test(t))return 'Intel UHD integrada';if(/radeon.*(?:integrada|graphics)|grafica\s+integrada/i.test(t))return /5600g|5700g/i.test(t)?'Radeon integrada (5600G)':'Radeon integrada básica';return fuzzyIdentity(t,GPU_DATA.map(x=>x.name));}
 function fuzzyIdentity(raw,names){const numbers=(raw.match(/\d+/g)||[]).join('');if(!numbers)return '';const words=raw.split(/[;,|\n]/);for(const name of names){const n=key(name);if((name.match(/\d+/g)||[]).join('')!==numbers)continue;for(const word of words){const k=key(word);if(distance(k,n)<=Math.min(2,Math.floor(n.length*.15)))return name;}}return '';}
 export function resolveCPU(raw){const name=identifyCPU(raw)||String(raw).trim();const found=CPU_DATA.find(x=>key(x[0])===key(name));if(found)return{name,gaming:found[1],cores:found[2],method:'profile',equivalent:null};
+ // Intel desktop F variants omit integrated graphics. With a discrete GPU,
+ // the same numbered K model supplies a comparable CPU profile (not a direct benchmark).
+ if(/^Core (?:Ultra [579] \d{3}|i[3579]-\d{4,5})KF$/.test(name)){
+  const equivalent=name.replace(/KF$/,'K');const base=CPU_DATA.find(x=>key(x[0])===key(equivalent));
+  if(base)return{name,gaming:base[1],cores:base[2],method:'family',equivalent};
+ }
  const m=name.match(/Ryzen ([3579]) (\d)(\d{3})(.*)/);if(m&&Number(m[2])>=3&&Number(m[2])<=9){const gen=Number(m[2]);const tier=Number(m[1]);const equivalent=gen>=9?`Ryzen ${tier} ${tier===5?'9600X':tier===7?'9700X':'9900X'}`:gen>=7?`Ryzen ${tier} ${tier===5?'7600':tier===7?'7700':'7900X'}`:tier<=5?'Ryzen 5 5600':'Ryzen 7 5700X';const base=resolveCPU(equivalent);return{...base,name,method:'family',equivalent};}
  const intel=name.match(/Core i([3579])-(\d{4,5})(.*)/);if(intel&&!/[HU]/i.test(intel[3])){const generation=Number(intel[2].slice(0,-3));if(generation>=8&&generation<=14){const equivalent=generation>=13?intel[1]>=7?'Core i7-14700K':'Core i5-13400F':generation>=12?intel[1]>=7?'Core i7-12700K':'Core i5-12400F':'Core i5-10400F';return{...resolveCPU(equivalent),name,method:'family',equivalent};}}
  return null;}
